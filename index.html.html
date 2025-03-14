@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+        #menu, #quiz-container {
+            background: white;
+            width: 50%;
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .option, #start, #back {
+            display: block;
+            margin: 10px auto;
+            padding: 10px;
+            background: #ddd;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 200px;
+        }
+        .option:hover, #start:hover, #back:hover {
+            background: #ccc;
+        }
+        #timer {
+            font-size: 18px;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div id="menu">
+        <h1>Choose Your Quiz</h1>
+        <div class="option" onclick="selectCategory('football')">1: Quiz Football</div>
+        <div class="option" onclick="selectCategory('fun')">2: Fun Quiz</div>
+        <div class="option" onclick="selectCategory('religion')">3: Religion Quiz</div>
+        <div class="option" onclick="selectCategory('history')">4: History Quiz</div>
+    </div>
+    
+    <div id="quiz-container" style="display: none;">
+        <h2 id="question">Loading question...</h2>
+        <div id="options"></div>
+        <p id="result"></p>
+        <p id="timer">Time Left: 10s</p>
+        <button id="back" onclick="goBack()">Back</button>
+        <button id="start" onclick="startQuiz()">Start</button>
+    </div>
+    
+    <script>
+        let category = "";
+        let questions = {
+            football: [
+                { question: "Messi Iyo Ronaldo Yaa Fican ?", options: ["Messi", "Ronaldo"], answer: "Messi" },
+                { question: "Messi meqo boll'on dior ayuu heystaa ?", options: ["8", "22"], answer: "8" },
+                { question: "yasiin meqo goal ayuu  dhaliyay sanadkii 2024 ?", options: ["99", "200","7","1","3"], answer: "3" }
+
+            ],
+            fun: [
+                { question: "Xafada Bula Xubey Yaa Ugu Calool Weyn?", options: ["Yasiin Caloleyy", "Bocoroow"], answer: "Yasiin Caloleyy" },
+                { question: "Xafada Yaa Ugu Gaban?", options: ["Jaduu", "Cadaani"], answer: "Cadaani" },
+                { question: "Arsenal Gormee Champions League Qaaday?", options: ["sanadkan 2025", "2026", "Waligeed Ma Qaadayso"], answer: "Waligeed Ma Qaadayso" },
+                {question:  "Xafada Yaa uGU iLko Dheer ?" , options:["Haruun","Abuukar"],answer:"Haruun"},
+                {question:  "Ninka Ugu Fooro Bixiska xafada waa ?" , options:["mudeey","Amaaye"],answer:"Amaaye"},
+                {question:  "Ninka Ugu Cunto Cunista Badan xafada waa ?" , options:["Amaaye","bocoroow"],answer:"Amaaye"},
+                {question:  "Ninka Ugu Beenta Badan Xafada waa ?" , options:["sabir","abuukar","haruun"],answer:"sabir"},
+                {question:  "wakuma duqa xafada?" , options:["yasiin madaxey","mxmed dooli"],answer:"mxmed dooli"},
+                {question:  "wakuma qofka sakeelka  badarka ku cuno ?" , options:["yasiin caloleey","amaaye","Bocoroow"],answer:"yasiin caloleey"},
+                {question:  "waa kuma qofka xafada ugu madaxa weyn?" , options:["abdirisaaq madaxey","yasiin madaxeyy","cabdinasir madaxeyy"],answer:"yasiin madaxeyy"},
+                {question:  "waa kuma jini ama uunsi  ?" , options:["ududow","yasiin madaxeyy","cabdinasir madaxeyy"],answer:"ududow"}
+            ],
+            religion: [
+                { question: "Qofka Muslim-Ka Meqo Saladood Ayuu Tukadaa Malinti?", options: ["3", "4", "5", "6"], answer: "5" },
+                { question: "waxaad sheegta qofka muslim-ka wax halmar ku wajibo adusan sameyn-na aqiro lo qabsaneynin?", options: ["janaaso", "suno", "soon", "xaj"], answer: "xaj" }
+            ],
+            history: [
+                { question: "wadankee bilaway digalka 2aad?", options: ["Japaan", "UK", "italy", "Germeny","USA"], answer: "Germeny" },
+                { question: "Somalia Meqo Digaal Ayee Lagishay wadamada aduunka?", options: ["2", "5", "1", "19","4"], answer: "2" },
+                {question: "Somalia Meqo Digaal Ayee Lagishay wadamada aduunka?", options: ["2", "5", "1", "19","4"], answer: "2" },
+                {question: "dowladii rayidka gormee burburtay?", options: ["1991", "1969", "1950", "1995","2000"], answer: "1969" },
+                {question: "Siyaad barre sanadke ayuu dhintay?", options: ["1995", "1999", "1996", "2020","2000"], answer: "1995" }
+
+
+
+
+            ]
+        };
+        
+        let currentQuestionIndex = 0;
+        let timer;
+        let timeLeft = 10;
+        let correctAnswers = 0;
+        
+        function selectCategory(cat) {
+            category = cat;
+            currentQuestionIndex = 0;
+            correctAnswers = 0; // Dib u bilaabista tirada saxda ah marka qayb cusub la doorto
+            document.getElementById("menu").style.display = "none";
+            document.getElementById("quiz-container").style.display = "block";
+            loadQuestion();
+        }
+        
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            correctAnswers = 0;
+            loadQuestion();
+        }
+        
+        function goBack() {
+            document.getElementById("menu").style.display = "block";
+            document.getElementById("quiz-container").style.display = "none";
+        }
+        
+        function startTimer() {
+            timeLeft = 10;
+            document.getElementById("timer").textContent = `Time Left: ${timeLeft}s`;
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById("timer").textContent = `Time Left: ${timeLeft}s`;
+                if (timeLeft === 0) {
+                    clearInterval(timer);
+                    checkAnswer("", "");
+                }
+            }, 1000);
+        }
+        
+        function loadQuestion() {
+            if (currentQuestionIndex >= questions[category].length) {
+                endGame();
+                return;
+            }
+            let currentQuestion = questions[category][currentQuestionIndex];
+            document.getElementById("question").textContent = currentQuestion.question;
+            document.getElementById("options").innerHTML = "";
+            
+            currentQuestion.options.forEach(option => {
+                let button = document.createElement("div");
+                button.textContent = option;
+                button.classList.add("option");
+                button.onclick = () => checkAnswer(option, currentQuestion.answer);
+                document.getElementById("options").appendChild(button);
+            });
+            startTimer();
+        }
+        
+        function checkAnswer(selectedOption, correctAnswer) {
+            clearInterval(timer);
+            if (selectedOption === correctAnswer) {
+                correctAnswers++;
+                document.getElementById("result").textContent = "✅ Correct!";
+                document.getElementById("result").style.color = "green";
+                setTimeout(() => {
+                    currentQuestionIndex++; // Move to the next question
+                    loadQuestion(); // Load a new question
+                }, 1000); // Delay before showing next question
+            } else {
+                document.getElementById("result").textContent = "❌ Incorrect!";
+                document.getElementById("result").style.color = "red";
+                setTimeout(() => {
+                    loadQuestion(); // Retry the same question
+                }, 1000); // Delay before retrying the same question
+            }
+        }
+        
+        function endGame() {
+            document.getElementById("question").textContent = "Quiz Completed!";
+            document.getElementById("options").innerHTML = "";
+            document.getElementById("result").textContent = `You answered ${correctAnswers} Waad Kaso wada jawaabtay ${category} quiz.`;
+            document.getElementById("result").style.color = "blue";
+        }
+    </script>
+</body>
+</html>
